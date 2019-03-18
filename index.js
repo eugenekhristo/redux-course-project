@@ -6,7 +6,7 @@ function createStore(reducer) {
 
   const subsctibe = listener => {
     listeners.push(listener);
-    return () => listeners = listeners.filter(l => l !== listener);
+    return () => (listeners = listeners.filter(l => l !== listener));
   };
 
   const dispatch = action => {
@@ -25,18 +25,41 @@ const todosReducer = (state = [], action) => {
   switch (action.type) {
     case 'ADD_TODO':
       return state.concat([action.todo]);
+    case 'REMOVE_TODO':
+      return state.filter(todo => todo.id !== action.id);
+    case 'TOGGLE_TODO':
+      return state.map(todo =>
+        todo.id !== action.id ? todo : { ...todo, completed: !todo.completed }
+      );
     default:
       return state;
   }
 };
 
-const store = createStore(todosReducer);
+const goalsReducer = (state = [], action) => {
+  switch (action.type) {
+    case 'ADD_GOAL':
+      return state.concat([action.goal]);
+    case 'REMOVE_GOAL':
+      return state.filter(goal => goal.id !== action.id);
+    default:
+      return state;
+  }
+};
 
-const unsibscribe = store.subsctibe(() =>
-  console.log('Current state is: ', store.getState())
-);
+const rootReduer = (state = {}, action) => ({
+  todos: todosReducer(state.todos, action),
+  goals: goalsReducer(state.goals, action)
+});
 
-console.log(store.getState());
+const store = createStore(rootReduer);
+
+const unsibscribe = store.subsctibe(() => {
+  console.log('Current state is: ', store.getState());
+  console.log(
+    '========================================================================'
+  );
+});
 
 store.dispatch({
   type: 'ADD_TODO',
@@ -56,8 +79,6 @@ store.dispatch({
   }
 });
 
-unsibscribe();
-
 store.dispatch({
   type: 'ADD_TODO',
   todo: {
@@ -67,5 +88,33 @@ store.dispatch({
   }
 });
 
+store.dispatch({
+  type: 'TOGGLE_TODO',
+  id: 0
+});
 
-console.log('STATE', store.getState());
+store.dispatch({
+  type: 'REMOVE_TODO',
+  id: 1
+});
+
+store.dispatch({
+  type: 'ADD_GOAL',
+  goal: {
+    id: 0,
+    name: 'Create PWA app with react'
+  }
+});
+
+store.dispatch({
+  type: 'ADD_GOAL',
+  goal: {
+    id: 1,
+    name: 'Ride a snowboard'
+  }
+});
+
+store.dispatch({
+  type: 'REMOVE_GOAL',
+  id: 1
+});
