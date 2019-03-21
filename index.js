@@ -1,3 +1,12 @@
+// utils
+function generateId() {
+  return (
+    Math.random()
+      .toString(36)
+      .substring(2) + new Date().getTime().toString(36)
+  );
+}
+
 // LIBRARY
 function createStore(reducer) {
   let state;
@@ -5,7 +14,7 @@ function createStore(reducer) {
 
   const getState = () => state;
 
-  const subsctibe = listener => {
+  const subscribe = listener => {
     listeners.push(listener);
     return () => (listeners = listeners.filter(l => l !== listener));
   };
@@ -15,17 +24,17 @@ function createStore(reducer) {
     listeners.forEach(listener => listener());
   };
 
-  // first call to fill our state with default values
+  // first call to fill our state with default values when store is created
   dispatch('');
 
   return {
     getState,
-    subsctibe,
+    subscribe,
     dispatch
   };
 }
 
-// APP
+// APP STATE
 const ADD_TODO = 'ADD_TODO';
 const REMOVE_TODO = 'REMOVE_TODO';
 const TOGGLE_TODO = 'TOGGLE_TODO';
@@ -83,62 +92,48 @@ const goalsReducer = (state = [], action) => {
   }
 };
 
-const rootReduer = (state = {}, action) => ({
+const rootReducer = (state = {}, action) => ({
   todos: todosReducer(state.todos, action),
   goals: goalsReducer(state.goals, action)
 });
 
-const store = createStore(rootReduer);
+const store = createStore(rootReducer);
 
-console.log(store.getState())
+// DOM
+// like store methods in Angular
+function addTodoToStore() {
+  const inputElement = document.getElementById('addTodoInput');
+  const todoName = inputElement.value;
+  inputElement.value = '';
 
-const unsibscribe = store.subsctibe(() => {
-  console.log('Current state is: ', store.getState());
-  console.log(
-    '========================================================================'
+  store.dispatch(
+    addTodo({
+      id: generateId(),
+      name: todoName,
+      completed: false
+    })
   );
+}
+
+document.getElementById('addTodoBtn').addEventListener('click', addTodoToStore);
+
+store.subscribe(() => {
+  const {todos} = store.getState();
+
+  document.getElementById('todoList').innerHTML = '';
+
+  todos.forEach(addTodoToDOM);
 });
 
-store.dispatch(
-  addTodo({
-    id: 0,
-    name: 'Learn Redux',
-    completed: false
+function addTodoToDOM(todo) {
+  const li = document.createElement('li');
+  li.textContent = todo.name;
+  li.style.cursor = 'pointer';
+
+  li.style.textDecoration = todo.completed ? 'line-through' : 'none'
+  li.addEventListener('click', () => {
+    store.dispatch(toggleTodo(todo.id))
   })
-);
 
-store.dispatch(
-  addTodo({
-    id: 1,
-    name: 'Learn about pure functions',
-    completed: true
-  })
-);
-
-store.dispatch(
-  addTodo({
-    id: 2,
-    name: 'Learn NodeJS',
-    completed: false
-  })
-);
-
-store.dispatch(toggleTodo(0));
-
-store.dispatch(removeTodo(1));
-
-store.dispatch(
-  addGoal({
-    id: 0,
-    name: 'Create PWA app with react'
-  })
-);
-
-store.dispatch(
-  addGoal({
-    id: 1,
-    name: 'Ride a snowboard'
-  })
-);
-
-store.dispatch(removeGoal(1));
+  document.getElementById('todoList').append(li);
+}
