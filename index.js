@@ -101,6 +101,13 @@ const store = createStore(rootReducer);
 
 // DOM
 // like store methods in Angular
+function createRemoveButton(eventHandler) {
+  const button = document.createElement('button');
+  button.textContent = 'Remove';
+  button.addEventListener('click', eventHandler);
+  return button;
+}
+
 function addTodoToStore() {
   const inputElement = document.getElementById('addTodoInput');
   const todoName = inputElement.value;
@@ -115,14 +122,30 @@ function addTodoToStore() {
   );
 }
 
+function addGoalToStore() {
+  const inputElement = document.getElementById('addGoalInput');
+  const goalName = inputElement.value;
+  inputElement.value = '';
+
+  store.dispatch(
+    addGoal({
+      id: generateId(),
+      name: goalName
+    })
+  );
+}
+
 document.getElementById('addTodoBtn').addEventListener('click', addTodoToStore);
+document.getElementById('addGoalBtn').addEventListener('click', addGoalToStore);
 
 store.subscribe(() => {
-  const {todos} = store.getState();
+  const { todos, goals } = store.getState();
 
   document.getElementById('todoList').innerHTML = '';
+  document.getElementById('goalList').innerHTML = '';
 
   todos.forEach(addTodoToDOM);
+  goals.forEach(addGoalToDOM);
 });
 
 function addTodoToDOM(todo) {
@@ -130,10 +153,25 @@ function addTodoToDOM(todo) {
   li.textContent = todo.name;
   li.style.cursor = 'pointer';
 
-  li.style.textDecoration = todo.completed ? 'line-through' : 'none'
+  li.style.textDecoration = todo.completed ? 'line-through' : 'none';
   li.addEventListener('click', () => {
-    store.dispatch(toggleTodo(todo.id))
-  })
+    store.dispatch(toggleTodo(todo.id));
+  });
+
+  const removeButton = createRemoveButton(() => {
+    store.dispatch(removeTodo(todo.id));
+  });
 
   document.getElementById('todoList').append(li);
+  document.getElementById('todoList').append(removeButton);
+}
+
+function addGoalToDOM(goal) {
+  const li = document.createElement('li');
+  li.textContent = goal.name;
+  const removeButton = createRemoveButton(() => {
+    store.dispatch(removeGoal(goal.id));
+  });
+  document.getElementById('goalList').append(li);
+  document.getElementById('goalList').append(removeButton);
 }
