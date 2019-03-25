@@ -70,6 +70,7 @@ const removeGoal = id => ({
   id
 });
 
+
 const todosReducer = (state = [], action) => {
   switch (action.type) {
     case ADD_TODO:
@@ -100,9 +101,20 @@ const goalsReducer = (state = [], action) => {
   }
 };
 
+const loadingReducer = (state = false, action) => {
+  switch (action.type) {
+    case RECEIVE_DATA: 
+      return true;
+  
+    default:
+      return state;
+  }
+};
+
 const rootReducer = Redux.combineReducers({
   todos: todosReducer,
-  goals: goalsReducer
+  goals: goalsReducer,
+  loaded: loadingReducer
 });
 
 const store = Redux.createStore(

@@ -1,137 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.min.js"></script>
-  <script src='https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js'></script>
-  <script src='https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js'></script>
-  <script src='https://unpkg.com/babel-standalone@6.15.0/babel.min.js'></script>
-  <script src='https://tylermcginnis.com/goals-todos-api/index.js'></script>
-  <title>Document</title>
-  <style>
-  </style>
-</head>
-<body>
-  
-  <div id="app"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.min.js"></script>
+    <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+    <title>Document</title>
+    <style></style>
+  </head>
+  <body>
+    <div id="app"></div>
 
-  <script src="/index.js"></script>
-  <script type="text/babel">
-    function List({items, removeItem, onItemClicked}) {
-      return (
-        <ul>
-          {items.map(item => (
-            <li 
-              style={{
-                textDecoration: item.completed ? 'line-through' : '', 
-                cursor: 'pointer',
-                userSelect: 'none'
-              }} 
-              key={item.id} 
-              onClick={() => onItemClicked && onItemClicked(item)}
-            >
-              {item.name}
-              {" "}<button onClick={() => removeItem(item)}>Remove</button>
-            </li>
-          ))}  
-        </ul>
-      );
-    }
-
-    class Todos extends React.Component {
-      inputRef = React.createRef();
-
-      addTodo = () => {
-        const inputElement = this.inputRef.value;
-        const name = inputElement.value.trim();
-        inputElement.value = '';
-        return this.props.store.dispatch(addTodo({
-          id: generateId(),
-          name,
-          completed: false
-        }));
-      }
-
-      removeTodo = todo => {
-        return this.props.store.dispatch(removeTodo(todo.id));
-      }
-
-      handleToggleTodo = todo => {
-        return this.props.store.dispatch(toggleTodo(todo.id));
-      }
-
-      render() {
+    <script src="/index.js"></script>
+    <script type="text/babel">
+      function List({items, removeItem, onItemClicked}) {
         return (
-          <div>
-            <h2>Add TODO</h2>
-            <input type="text" placeholder="Add todo" ref={this.inputRef} />
-            <button onClick={this.addTodo}>Add Todo</button>
-            <List items={this.props.todos} removeItem={this.removeTodo} onItemClicked={this.handleToggleTodo} />
-          </div>
+          <ul>
+            {items.map(item => (
+              <li
+                style={{
+                  textDecoration: item.completed ? 'line-through' : '',
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }}
+                key={item.id}
+                onClick={() => onItemClicked && onItemClicked(item)}
+              >
+                {item.name}
+                {" "}<button onClick={() => removeItem(item)}>Remove</button>
+              </li>
+            ))}
+          </ul>
         );
       }
-    }
 
-    class Goals extends React.Component {
-      inputRef = React.createRef();
+      class Todos extends React.Component {
+        inputRef = React.createRef();
 
-      addGoal = () => {
-        const inputElement = this.inputRef.value;
-        const name = inputElement.value.trim();
-        inputElement.value = '';
-        return this.props.store.dispatch(addGoal({
-          id: generateId(),
-          name
-        }));
-      }
+        addTodo = () => {
+          const inputElement = this.inputRef.value;
+          const name = inputElement.value.trim();
+          inputElement.value = '';
+          return this.props.store.dispatch(addTodo({
+            id: generateId(),
+            name,
+            completed: false
+          }));
+        }
 
-      removeGoal = goal => {
-        return this.props.store.dispatch(removeGoal(goal.id));
-      }
+        removeTodo = todo => {
+          return this.props.store.dispatch(removeTodo(todo.id));
+        }
 
-      render() {
-        return (
-          <div>
-            <h2>Add GOAL</h2>
-            <input type="text" placeholder="Add goal" ref={this.inputRef} />
-            <button onClick={this.addGoal}>Add Goal</button>
-            <List items={this.props.goals} removeItem={this.removeGoal} />
-          </div>
-        );
-      }
-    }
+        handleToggleTodo = todo => {
+          return this.props.store.dispatch(toggleTodo(todo.id));
+        }
 
-    class App extends React.Component {
-        render = () => {
-          const {store} = this.props;
-          const {todos, goals} = store.getState();
-
+        render() {
           return (
-          <div>
-            <Todos store={store} todos={todos} />  
-            <Goals store={store} goals={goals} />  
-          </div>
-        );
+            <div>
+              <h2>Add TODO</h2>
+              <input type="text" placeholder="Add todo" ref={this.inputRef} />
+              <button onClick={this.addTodo}>Add Todo</button>
+              <List items={this.props.todos} removeItem={this.removeTodo} onItemClicked={this.handleToggleTodo} />
+            </div>
+          );
+        }
       }
 
-      componentDidMount() {
-        const {store} = this.props;
+      class Goals extends React.Component {
+        inputRef = React.createRef();
 
-        Promise.all([
-          API.fetchTodos(),
-          API.fetchGoals()
-        ]).then(([todos, goals]) => {
-          store.dispatch(receiveData(todos, goals));
-        })
+        addGoal = () => {
+          const inputElement = this.inputRef.value;
+          const name = inputElement.value.trim();
+          inputElement.value = '';
+          return this.props.store.dispatch(addGoal({
+            id: generateId(),
+            name
+          }));
+        }
 
-        store.subscribe(() => this.forceUpdate());
+        removeGoal = goal => {
+          return this.props.store.dispatch(removeGoal(goal.id));
+        }
+
+        render() {
+          return (
+            <div>
+              <h2>Add GOAL</h2>
+              <input type="text" placeholder="Add goal" ref={this.inputRef} />
+              <button onClick={this.addGoal}>Add Goal</button>
+              <List items={this.props.goals} removeItem={this.removeGoal} />
+            </div>
+          );
+        }
       }
-    }
 
-    ReactDOM.render(<App store={store} />, document.getElementById('app'));
+      class App extends React.Component {
+          render = () => {
+            const {store} = this.props;
+            const {todos, goals, loaded} = store.getState();
 
-  </script>
-</body>
+            const appTemplate = (
+            <div>
+              <Todos store={store} todos={todos} />
+              <Goals store={store} goals={goals} />
+            </div>)
+
+            const templateIfAppIsLoading = <h3>Loading...</h3>;
+
+            return loaded ? appTemplate : templateIfAppIsLoading;
+        }
+
+        componentDidMount() {
+          const {store} = this.props;
+
+          Promise.all([
+            API.fetchTodos(),
+            API.fetchGoals()
+          ]).then(([todos, goals]) => {
+            store.dispatch(receiveData(todos, goals));
+          })
+
+          store.subscribe(() => this.forceUpdate());
+        }
+      }
+
+      ReactDOM.render(<App store={store} />, document.getElementById('app'));
+    </script>
+  </body>
 </html>
