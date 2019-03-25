@@ -8,37 +8,30 @@
   <script src='https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js'></script>
   <script src='https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js'></script>
   <script src='https://unpkg.com/babel-standalone@6.15.0/babel.min.js'></script>
+  <script src='https://tylermcginnis.com/goals-todos-api/index.js'></script>
   <title>Document</title>
   <style>
   </style>
 </head>
 <body>
   
-  <div>
-    <h2>Add TODO</h2>
-    <input type="text" placeholder="Add todo" id="addTodoInput" />
-    <button id="addTodoBtn">Add Todo</button>
-    <ul id="todoList"></ul>
-  </div><br>
-
-  <div>
-    <h2>Add GOAL</h2>
-    <input type="text" placeholder="Add goal" id="addGoalInput" />
-    <button id="addGoalBtn">Add Goal</button>
-    <ul id="goalList"></ul>
-  </div>
-
-  <hr/>
-
   <div id="app"></div>
 
   <script src="/index.js"></script>
   <script type="text/babel">
-    function List({items, removeItem}) {
+    function List({items, removeItem, onItemClicked}) {
       return (
         <ul>
           {items.map(item => (
-            <li key={item.id}>
+            <li 
+              style={{
+                textDecoration: item.completed ? 'line-through' : '', 
+                cursor: 'pointer',
+                userSelect: 'none'
+              }} 
+              key={item.id} 
+              onClick={() => onItemClicked && onItemClicked(item)}
+            >
               {item.name}
               {" "}<button onClick={() => removeItem(item)}>Remove</button>
             </li>
@@ -65,13 +58,17 @@
         return this.props.store.dispatch(removeTodo(todo.id));
       }
 
+      handleToggleTodo = todo => {
+        return this.props.store.dispatch(toggleTodo(todo.id));
+      }
+
       render() {
         return (
           <div>
             <h2>Add TODO</h2>
             <input type="text" placeholder="Add todo" ref={this.inputRef} />
             <button onClick={this.addTodo}>Add Todo</button>
-            <List items={this.props.todos} removeItem={this.removeTodo} />
+            <List items={this.props.todos} removeItem={this.removeTodo} onItemClicked={this.handleToggleTodo} />
           </div>
         );
       }
@@ -121,6 +118,14 @@
 
       componentDidMount() {
         const {store} = this.props;
+
+        Promise.all([
+          API.fetchTodos(),
+          API.fetchGoals()
+        ]).then(([todos, goals]) => {
+          store.dispatch(receiveData(todos, goals));
+        })
+
         store.subscribe(() => this.forceUpdate());
       }
     }
