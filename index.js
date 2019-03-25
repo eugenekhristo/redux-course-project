@@ -7,33 +7,6 @@ function generateId() {
   );
 }
 
-// LIBRARY
-function createStore(reducer) {
-  let state;
-  let listeners = [];
-
-  const getState = () => state;
-
-  const subscribe = listener => {
-    listeners.push(listener);
-    return () => (listeners = listeners.filter(l => l !== listener));
-  };
-
-  const dispatch = action => {
-    state = reducer(state, action);
-    listeners.forEach(listener => listener());
-  };
-
-  // first call to fill our state with default values when store is created
-  dispatch('');
-
-  return {
-    getState,
-    subscribe,
-    dispatch
-  };
-}
-
 // APP STATE
 const ADD_TODO = 'ADD_TODO';
 const REMOVE_TODO = 'REMOVE_TODO';
@@ -92,12 +65,12 @@ const goalsReducer = (state = [], action) => {
   }
 };
 
-const rootReducer = (state = {}, action) => ({
-  todos: todosReducer(state.todos, action),
-  goals: goalsReducer(state.goals, action)
+const rootReducer = Redux.combineReducers({
+  todos: todosReducer,
+  goals: goalsReducer
 });
 
-const store = createStore(rootReducer);
+const store = Redux.createStore(rootReducer);
 
 // DOM
 // like store methods in Angular
