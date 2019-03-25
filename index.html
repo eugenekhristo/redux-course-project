@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.min.js"></script>
+  <script src='https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js'></script>
+  <script src='https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js'></script>
+  <script src='https://unpkg.com/babel-standalone@6.15.0/babel.min.js'></script>
   <title>Document</title>
 </head>
 <body>
@@ -23,6 +26,65 @@
     <ul id="goalList"></ul>
   </div>
 
+  <hr/>
+
+  <div id="app"></div>
+
   <script src="/index.js"></script>
+  <script type="text/babel">
+    function List(props) {
+      return;
+    }
+
+    class Todos extends React.Component {
+      inputRef = React.createRef();
+
+      addGoal = () => {
+        const inputElement = this.inputRef.value;
+
+        return this.props.store.dispatch(addTodo({
+          id: generateId(),
+          name: inputElement.value.trim(),
+          completed: false
+        }));
+      }
+
+      render() {
+        return (
+          <div>
+            <h2>Add TODO</h2>
+            <input type="text" placeholder="Add todo" ref={this.inputRef} />
+            <button onClick={this.addGoal}>Add Todo</button>
+          </div>
+        );
+      }
+    }
+
+    class Goals extends React.Component {
+      render() {
+        return (
+          <div>
+            <h2>Add GOAL</h2>
+            <input type="text" placeholder="Add goal" />
+            <button >Add Goal</button>
+          </div>
+        );
+      }
+    }
+
+    class App extends React.Component {
+        render = () => {
+          return (
+          <div>
+            <Todos store={this.props.store} />  
+            <Goals store={this.props.store} />  
+          </div>
+        );
+      }
+    }
+
+    ReactDOM.render(<App store={store} />, document.getElementById('app'));
+
+  </script>
 </body>
 </html>
