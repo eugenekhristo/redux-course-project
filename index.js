@@ -21,6 +21,17 @@ const bitcoinChecker = store => next => action => {
   return next(action);
 };
 
+const loggerMiddleware = store => next => action => {
+  console.group(action.type);
+  console.log('Action: ');
+  console.log(action);
+  next(action);
+  console.log('New state: ');
+  console.log(store.getState());
+  console.groupEnd();
+} 
+
+
 // APP STATE
 const ADD_TODO = 'ADD_TODO';
 const REMOVE_TODO = 'REMOVE_TODO';
@@ -86,7 +97,7 @@ const rootReducer = Redux.combineReducers({
 
 const store = Redux.createStore(
   rootReducer,
-  Redux.applyMiddleware(bitcoinChecker)
+  Redux.applyMiddleware(bitcoinChecker, loggerMiddleware)
 );
 
 // DOM
