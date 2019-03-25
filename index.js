@@ -7,6 +7,20 @@ function generateId() {
   );
 }
 
+// own middleware
+const bitcoinChecker = store => next => action => {
+  if (
+    (action.type === ADD_TODO &&
+      action.todo.name.toLowerCase().includes('bitcoin')) ||
+    (action.type === ADD_GOAL &&
+      action.goal.name.toLowerCase().includes('bitcoin'))
+  ) {
+    return alert(`Nope! That's a bad idea!`);
+  }
+
+  return next(action);
+};
+
 // APP STATE
 const ADD_TODO = 'ADD_TODO';
 const REMOVE_TODO = 'REMOVE_TODO';
@@ -70,7 +84,10 @@ const rootReducer = Redux.combineReducers({
   goals: goalsReducer
 });
 
-const store = Redux.createStore(rootReducer);
+const store = Redux.createStore(
+  rootReducer,
+  Redux.applyMiddleware(bitcoinChecker)
+);
 
 // DOM
 // like store methods in Angular
