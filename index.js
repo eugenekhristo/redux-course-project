@@ -164,7 +164,8 @@ function addTodoToDOM(todo) {
   });
 
   document.getElementById('todoList').append(li);
-  document.getElementById('todoList').append(removeButton);
+  li.append(document.createTextNode(' '));
+  li.append(removeButton);
 }
 
 function addGoalToDOM(goal) {
@@ -174,5 +175,6 @@ function addGoalToDOM(goal) {
     store.dispatch(removeGoal(goal.id));
   });
   document.getElementById('goalList').append(li);
-  document.getElementById('goalList').append(removeButton);
+  li.append(document.createTextNode(' '));
+  li.append(removeButton);
 }

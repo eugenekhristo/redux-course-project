@@ -9,6 +9,8 @@
   <script src='https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js'></script>
   <script src='https://unpkg.com/babel-standalone@6.15.0/babel.min.js'></script>
   <title>Document</title>
+  <style>
+  </style>
 </head>
 <body>
   
@@ -32,21 +34,35 @@
 
   <script src="/index.js"></script>
   <script type="text/babel">
-    function List(props) {
-      return;
+    function List({items, removeItem}) {
+      return (
+        <ul>
+          {items.map(item => (
+            <li key={item.id}>
+              {item.name}
+              {" "}<button onClick={() => removeItem(item)}>Remove</button>
+            </li>
+          ))}  
+        </ul>
+      );
     }
 
     class Todos extends React.Component {
       inputRef = React.createRef();
 
-      addGoal = () => {
+      addTodo = () => {
         const inputElement = this.inputRef.value;
-
+        const name = inputElement.value.trim();
+        inputElement.value = '';
         return this.props.store.dispatch(addTodo({
           id: generateId(),
-          name: inputElement.value.trim(),
+          name,
           completed: false
         }));
+      }
+
+      removeTodo = todo => {
+        return this.props.store.dispatch(removeTodo(todo.id));
       }
 
       render() {
@@ -54,19 +70,37 @@
           <div>
             <h2>Add TODO</h2>
             <input type="text" placeholder="Add todo" ref={this.inputRef} />
-            <button onClick={this.addGoal}>Add Todo</button>
+            <button onClick={this.addTodo}>Add Todo</button>
+            <List items={this.props.todos} removeItem={this.removeTodo} />
           </div>
         );
       }
     }
 
     class Goals extends React.Component {
+      inputRef = React.createRef();
+
+      addGoal = () => {
+        const inputElement = this.inputRef.value;
+        const name = inputElement.value.trim();
+        inputElement.value = '';
+        return this.props.store.dispatch(addGoal({
+          id: generateId(),
+          name
+        }));
+      }
+
+      removeGoal = goal => {
+        return this.props.store.dispatch(removeGoal(goal.id));
+      }
+
       render() {
         return (
           <div>
             <h2>Add GOAL</h2>
-            <input type="text" placeholder="Add goal" />
-            <button >Add Goal</button>
+            <input type="text" placeholder="Add goal" ref={this.inputRef} />
+            <button onClick={this.addGoal}>Add Goal</button>
+            <List items={this.props.goals} removeItem={this.removeGoal} />
           </div>
         );
       }
@@ -74,12 +108,20 @@
 
     class App extends React.Component {
         render = () => {
+          const {store} = this.props;
+          const {todos, goals} = store.getState();
+
           return (
           <div>
-            <Todos store={this.props.store} />  
-            <Goals store={this.props.store} />  
+            <Todos store={store} todos={todos} />  
+            <Goals store={store} goals={goals} />  
           </div>
         );
+      }
+
+      componentDidMount() {
+        const {store} = this.props;
+        store.subscribe(() => this.forceUpdate());
       }
     }
 
