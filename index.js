@@ -31,6 +31,11 @@ const loggerMiddleware = store => next => action => {
   console.groupEnd();
 };
 
+const thunkify = store => next => action => {
+  if (typeof action === 'function') return action(store.dispatch);
+  return next(action);
+};
+
 // APP STATE
 const RECEIVE_DATA = 'RECEIVE_DATA';
 const ADD_TODO = 'ADD_TODO';
@@ -70,6 +75,30 @@ const removeGoal = id => ({
   id
 });
 
+// API ACTION GENERATORS
+
+const handleDeleteGoal = goal => {
+  return dispatch => {
+    dispatch(removeGoal(goal.id));
+    return API.deleteGoal(goal.id).catch(() => {
+      dispatch(addGoal(goal));
+      alert('Some error occurred on the back-end! Try again!');
+    });
+  };
+};
+
+const handleAddGoal = (name, callback) => {
+  return dispatch => {
+    API.saveGoal(name)
+      .then(goal => {
+        dispatch(addGoal(goal));
+        callback();
+      })
+      .catch(() => alert('Some error occurred on the back-end! Try again!'));
+  };
+};
+
+// REDUCERS
 
 const todosReducer = (state = [], action) => {
   switch (action.type) {
@@ -103,9 +132,9 @@ const goalsReducer = (state = [], action) => {
 
 const loadingReducer = (state = false, action) => {
   switch (action.type) {
-    case RECEIVE_DATA: 
+    case RECEIVE_DATA:
       return true;
-  
+
     default:
       return state;
   }
@@ -119,5 +148,5 @@ const rootReducer = Redux.combineReducers({
 
 const store = Redux.createStore(
   rootReducer,
-  Redux.applyMiddleware(bitcoinChecker)
+  Redux.applyMiddleware(thunkify, loggerMiddleware, bitcoinChecker)
 );

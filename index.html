@@ -17,21 +17,21 @@
 
     <script src="/index.js"></script>
     <script type="text/babel">
-      function List({items, removeItem, onItemClicked}) {
+      function List({ items, removeItem, onItemClicked }) {
         return (
           <ul>
             {items.map(item => (
               <li
                 style={{
-                  textDecoration: item.completed ? 'line-through' : '',
+                  textDecoration: item.complete ? 'line-through' : '',
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
                 key={item.id}
                 onClick={() => onItemClicked && onItemClicked(item)}
               >
-                {item.name}
-                {" "}<button onClick={() => removeItem(item)}>Remove</button>
+                {item.name}{' '}
+                <button onClick={() => removeItem(item)}>Remove</button>
               </li>
             ))}
           </ul>
@@ -45,12 +45,14 @@
           const inputElement = this.inputRef.value;
           const name = inputElement.value.trim();
           inputElement.value = '';
-          return this.props.store.dispatch(addTodo({
-            id: generateId(),
-            name,
-            completed: false
-          }));
-        }
+          return this.props.store.dispatch(
+            addTodo({
+              id: generateId(),
+              name,
+              complete: false
+            })
+          );
+        };
 
         removeTodo = todo => {
           this.props.store.dispatch(removeTodo(todo.id));
@@ -58,7 +60,7 @@
             this.props.store.dispatch(addTodo(todo));
             alert('Some error occurred on the backend!');
           });
-        }
+        };
 
         handleToggleTodo = todo => {
           this.props.store.dispatch(toggleTodo(todo.id));
@@ -66,7 +68,7 @@
             this.props.store.dispatch(toggleTodo(todo.id));
             alert('Error occurred on the backend!');
           });
-        }
+        };
 
         render() {
           return (
@@ -74,7 +76,11 @@
               <h2>Add TODO</h2>
               <input type="text" placeholder="Add todo" ref={this.inputRef} />
               <button onClick={this.addTodo}>Add Todo</button>
-              <List items={this.props.todos} removeItem={this.removeTodo} onItemClicked={this.handleToggleTodo} />
+              <List
+                items={this.props.todos}
+                removeItem={this.removeTodo}
+                onItemClicked={this.handleToggleTodo}
+              />
             </div>
           );
         }
@@ -86,20 +92,12 @@
         addGoal = () => {
           const inputElement = this.inputRef.value;
           const name = inputElement.value.trim();
-          inputElement.value = '';
-          return this.props.store.dispatch(addGoal({
-            id: generateId(),
-            name
-          }));
+          const callback = () => inputElement.value = '';
+          this.props.store.dispatch(handleAddGoal(name, callback));
         }
+          
 
-        removeGoal = goal => {
-          this.props.store.dispatch(removeGoal(goal.id));
-          return API.deleteGoal(goal.id).catch(() => {
-            this.props.store.dispatch(addGoal(goal));
-            alert('Some error occurred on the backend!');
-          });
-        }
+        removeGoal = goal => this.props.store.dispatch(handleDeleteGoal(goal));
 
         render() {
           return (
@@ -114,30 +112,30 @@
       }
 
       class App extends React.Component {
-          render = () => {
-            const {store} = this.props;
-            const {todos, goals, loaded} = store.getState();
+        render = () => {
+          const { store } = this.props;
+          const { todos, goals, loaded } = store.getState();
 
-            const appTemplate = (
+          const appTemplate = (
             <div>
               <Todos store={store} todos={todos} />
               <Goals store={store} goals={goals} />
-            </div>)
+            </div>
+          );
 
-            const templateIfAppIsLoading = <h3>Loading...</h3>;
+          const templateIfAppIsLoading = <h3>Loading...</h3>;
 
-            return loaded ? appTemplate : templateIfAppIsLoading;
-        }
+          return loaded ? appTemplate : templateIfAppIsLoading;
+        };
 
         componentDidMount() {
-          const {store} = this.props;
+          const { store } = this.props;
 
-          Promise.all([
-            API.fetchTodos(),
-            API.fetchGoals()
-          ]).then(([todos, goals]) => {
-            store.dispatch(receiveData(todos, goals));
-          })
+          Promise.all([API.fetchTodos(), API.fetchGoals()]).then(
+            ([todos, goals]) => {
+              store.dispatch(receiveData(todos, goals));
+            }
+          );
 
           store.subscribe(() => this.forceUpdate());
         }
