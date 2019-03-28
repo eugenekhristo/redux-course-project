@@ -61,7 +61,11 @@
         }
 
         handleToggleTodo = todo => {
-          return this.props.store.dispatch(toggleTodo(todo.id));
+          this.props.store.dispatch(toggleTodo(todo.id));
+          return API.saveTodoToggle(todo.id).catch(() => {
+            this.props.store.dispatch(toggleTodo(todo.id));
+            alert('Error occurred on the backend!');
+          });
         }
 
         render() {
