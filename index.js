@@ -32,12 +32,12 @@ const loggerMiddleware = store => next => action => {
 };
 
 // APP STATE
+const RECEIVE_DATA = 'RECEIVE_DATA';
 const ADD_TODO = 'ADD_TODO';
 const REMOVE_TODO = 'REMOVE_TODO';
 const TOGGLE_TODO = 'TOGGLE_TODO';
 const ADD_GOAL = 'ADD_GOAL';
 const REMOVE_GOAL = 'REMOVE_GOAL';
-const RECEIVE_DATA = 'RECEIVE_DATA';
 
 const receiveData = (todos, goals) => ({
   type: RECEIVE_DATA,
@@ -119,5 +119,5 @@ const rootReducer = Redux.combineReducers({
 
 const store = Redux.createStore(
   rootReducer,
-  Redux.applyMiddleware(bitcoinChecker, loggerMiddleware)
+  Redux.applyMiddleware(bitcoinChecker)
 );
