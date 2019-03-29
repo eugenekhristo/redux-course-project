@@ -31,10 +31,10 @@ const loggerMiddleware = store => next => action => {
   console.groupEnd();
 };
 
-const thunkify = store => next => action => {
-  if (typeof action === 'function') return action(store.dispatch);
-  return next(action);
-};
+// const thunkify = store => next => action => {
+//   if (typeof action === 'function') return action(store.dispatch);
+//   return next(action);
+// };
 
 // APP STATE
 const RECEIVE_DATA = 'RECEIVE_DATA';
@@ -77,6 +77,45 @@ const removeGoal = id => ({
 
 // API ACTION GENERATORS
 
+const handleReceiveDataAPI = () => {
+  return dispatch => {
+    Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => {
+      dispatch(receiveData(todos, goals));
+    });
+  };
+};
+
+const handleDeleteTodo = todo => {
+  return dispatch => {
+    dispatch(removeTodo(todo.id));
+    return API.deleteTodo(todo.id).catch(() => {
+      dispatch(addTodo(todo));
+      alert('Some error occurred on the back-end! Try again!');
+    });
+  };
+};
+
+const handleAddTodo = (name, callback) => {
+  return dispatch => {
+    API.saveTodo(name)
+      .then(todo => {
+        dispatch(addTodo(todo));
+        callback();
+      })
+      .catch(() => alert('Some error occurred on the back-end! Try again!'));
+  };
+};
+
+const handleToggleTodoAPI = id => {
+  return dispatch => {
+    dispatch(toggleTodo(id));
+    API.saveTodoToggle(id).catch(() => {
+      dispatch(toggleTodo(id));
+      alert('Some error occurred on the back-end! Try again!');
+    });
+  };
+};
+
 const handleDeleteGoal = goal => {
   return dispatch => {
     dispatch(removeGoal(goal.id));
@@ -108,7 +147,7 @@ const todosReducer = (state = [], action) => {
       return state.filter(todo => todo.id !== action.id);
     case TOGGLE_TODO:
       return state.map(todo =>
-        todo.id !== action.id ? todo : { ...todo, completed: !todo.completed }
+        todo.id !== action.id ? todo : { ...todo, complete: !todo.complete }
       );
     case RECEIVE_DATA:
       return action.todos;
@@ -148,5 +187,5 @@ const rootReducer = Redux.combineReducers({
 
 const store = Redux.createStore(
   rootReducer,
-  Redux.applyMiddleware(thunkify, loggerMiddleware, bitcoinChecker)
+  Redux.applyMiddleware(ReduxThunk.default, loggerMiddleware, bitcoinChecker)
 );

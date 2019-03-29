@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+    <script src='https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js'></script>
     <title>Document</title>
     <style></style>
   </head>
@@ -44,31 +45,13 @@
         addTodo = () => {
           const inputElement = this.inputRef.value;
           const name = inputElement.value.trim();
-          inputElement.value = '';
-          return this.props.store.dispatch(
-            addTodo({
-              id: generateId(),
-              name,
-              complete: false
-            })
-          );
+          const callback = () => inputElement.value = '';
+          this.props.store.dispatch(handleAddGoal(name, callback));
         };
 
-        removeTodo = todo => {
-          this.props.store.dispatch(removeTodo(todo.id));
-          return API.deleteTodo(todo.id).catch(() => {
-            this.props.store.dispatch(addTodo(todo));
-            alert('Some error occurred on the backend!');
-          });
-        };
+        removeTodo = todo => this.props.store.dispatch(handleDeleteTodo(todo));
 
-        handleToggleTodo = todo => {
-          this.props.store.dispatch(toggleTodo(todo.id));
-          return API.saveTodoToggle(todo.id).catch(() => {
-            this.props.store.dispatch(toggleTodo(todo.id));
-            alert('Error occurred on the backend!');
-          });
-        };
+        handleToggleTodo = todo => this.props.store.dispatch(handleToggleTodoAPI(todo.id));
 
         render() {
           return (
@@ -131,11 +114,7 @@
         componentDidMount() {
           const { store } = this.props;
 
-          Promise.all([API.fetchTodos(), API.fetchGoals()]).then(
-            ([todos, goals]) => {
-              store.dispatch(receiveData(todos, goals));
-            }
-          );
+          store.dispatch(handleReceiveDataAPI());
 
           store.subscribe(() => this.forceUpdate());
         }
