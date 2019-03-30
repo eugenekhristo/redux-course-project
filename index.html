@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
-    <script src='https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js'></script>
+    <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
     <title>Document</title>
     <style></style>
   </head>
@@ -45,13 +45,14 @@
         addTodo = () => {
           const inputElement = this.inputRef.value;
           const name = inputElement.value.trim();
-          const callback = () => inputElement.value = '';
-          this.props.store.dispatch(handleAddGoal(name, callback));
+          const callback = () => (inputElement.value = '');
+          this.props.dispatch(handleAddGoal(name, callback));
         };
 
-        removeTodo = todo => this.props.store.dispatch(handleDeleteTodo(todo));
+        removeTodo = todo => this.props.dispatch(handleDeleteTodo(todo));
 
-        handleToggleTodo = todo => this.props.store.dispatch(handleToggleTodoAPI(todo.id));
+        handleToggleTodo = todo =>
+          this.props.dispatch(handleToggleTodoAPI(todo.id));
 
         render() {
           return (
@@ -69,18 +70,21 @@
         }
       }
 
+      const ConnectedTodos = connect(state => ({
+        todos: state.todos
+      }))(Todos);
+
       class Goals extends React.Component {
         inputRef = React.createRef();
 
         addGoal = () => {
           const inputElement = this.inputRef.value;
           const name = inputElement.value.trim();
-          const callback = () => inputElement.value = '';
-          this.props.store.dispatch(handleAddGoal(name, callback));
-        }
-          
+          const callback = () => (inputElement.value = '');
+          this.props.dispatch(handleAddGoal(name, callback));
+        };
 
-        removeGoal = goal => this.props.store.dispatch(handleDeleteGoal(goal));
+        removeGoal = goal => this.props.dispatch(handleDeleteGoal(goal));
 
         render() {
           return (
@@ -94,15 +98,18 @@
         }
       }
 
+      const ConnectedGoals = connect(state => ({
+        goals: state.goals
+      }))(Goals);
+
       class App extends React.Component {
         render = () => {
-          const { store } = this.props;
-          const { todos, goals, loaded } = store.getState();
+          const { loaded } = this.props;
 
           const appTemplate = (
             <div>
-              <Todos store={store} todos={todos} />
-              <Goals store={store} goals={goals} />
+              <ConnectedTodos />
+              <ConnectedGoals />
             </div>
           );
 
@@ -112,15 +119,67 @@
         };
 
         componentDidMount() {
-          const { store } = this.props;
-
-          store.dispatch(handleReceiveDataAPI());
-
-          store.subscribe(() => this.forceUpdate());
+          this.props.dispatch(handleReceiveDataAPI());
         }
       }
 
-      ReactDOM.render(<App store={store} />, document.getElementById('app'));
+      const ConnectedApp = connect(state => ({
+        loaded: state.loaded
+      }))(App);
+
+      // OWN REACT-REDUX library
+      const ReduxContext = React.createContext();
+
+      class Provider extends React.Component {
+        render() {
+          const { store, children } = this.props;
+          return (
+            <ReduxContext.Provider value={store}>
+              {children}
+            </ReduxContext.Provider>
+          );
+        }
+      }
+
+      function connect(mapStateToProps) {
+        return Component => {
+          class Receiver extends React.Component {
+            componentDidMount() {
+              this.unsubscribe = this.props.store.subscribe(() =>
+                this.forceUpdate()
+              );
+            }
+
+            componentWillUnmount() {
+              this.unsubscribe();
+            }
+
+            render() {
+              const state = this.props.store.getState();
+              const { dispatch } = this.props.store;
+              const stateNedded = { ...mapStateToProps(state), dispatch };
+              return <Component {...stateNedded} />;
+            }
+          }
+
+          return class ConnectedComponent extends React.Component {
+            render() {
+              return (
+                <ReduxContext.Consumer>
+                  {store => <Receiver store={store} />}
+                </ReduxContext.Consumer>
+              );
+            }
+          };
+        };
+      }
+
+      ReactDOM.render(
+        <Provider store={store}>
+          <ConnectedApp />
+        </Provider>,
+        document.getElementById('app')
+      );
     </script>
   </body>
 </html>
